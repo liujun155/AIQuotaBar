@@ -94,6 +94,15 @@ public partial class SettingsWindow : Window
         UpdateCustomProxyCardVisibility();
     }
 
+    internal void ShowNetworkTabForExport()
+    {
+        NavBtnNetwork.IsChecked = true;
+        OnNavChanged(this, new RoutedEventArgs());
+        CmbProxyMode.SelectedIndex = 1;
+        UpdateCustomProxyCardVisibility();
+        UpdateLayout();
+    }
+
     private void UpdateCustomProxyCardVisibility()
     {
         if (CardCustomProxy == null || CmbProxyMode == null) return;

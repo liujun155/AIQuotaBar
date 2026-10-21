@@ -24,6 +24,7 @@ bld/
 ## Temporary & Artifacts
 *.tmp
 *.log
+dist/*.pdb
 dist-standalone/
 
 publish-release/

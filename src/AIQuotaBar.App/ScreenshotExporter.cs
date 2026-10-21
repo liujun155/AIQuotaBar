@@ -31,6 +31,9 @@ public static class ScreenshotExporter
         // 1. 设置中心截图 (Settings Preview)
         ExportSettingsWindow(settings, coordinator, Path.Combine(outputDir, "settings-preview.png"));
 
+        // 1.1 设置中心网络与代理截图 (Settings Network Preview)
+        ExportSettingsNetworkWindow(settings, coordinator, Path.Combine(outputDir, "settings-network-preview.png"));
+
         // 2. 详情弹窗截图 (Flyout Preview)
         ExportFlyoutWindow(coordinator, settings, Path.Combine(outputDir, "flyout-preview.png"));
 
@@ -49,6 +52,22 @@ public static class ScreenshotExporter
             WindowStartupLocation = WindowStartupLocation.CenterScreen
         };
         win.Show();
+        win.UpdateLayout();
+
+        SaveVisualToPng(win, 680, 580, filePath);
+        win.Close();
+    }
+
+    private static void ExportSettingsNetworkWindow(AppSettings settings, RefreshCoordinator coordinator, string filePath)
+    {
+        var win = new SettingsWindow(settings, coordinator)
+        {
+            Width = 680,
+            Height = 580,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen
+        };
+        win.Show();
+        win.ShowNetworkTabForExport();
         win.UpdateLayout();
 
         SaveVisualToPng(win, 680, 580, filePath);
