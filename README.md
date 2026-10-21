@@ -7,6 +7,35 @@
 
 ---
 
+## 🖼️ 软件界面预览
+
+<div align="center">
+
+### 1. 任务栏微型双行胶囊（与 Windows 11 托盘时钟高度对齐）
+<p align="center">
+  <img src="docs/images/capsule-preview.png" alt="任务栏胶囊外观" width="300" />
+</p>
+
+### 2. 多维详情面板与 Fluent 暗色设置中心
+<table align="center">
+  <tr>
+    <td align="center" valign="top" width="40%">
+      <b>📊 配额详情浮窗 (Flyout)</b><br/>
+      <sub>支持多模型Tab切换、官方矢量图标、临界高精动态倒计时</sub><br/><br/>
+      <img src="docs/images/flyout-preview.png" alt="配额详情浮窗" width="280" />
+    </td>
+    <td align="center" valign="top" width="60%">
+      <b>⚙️ Fluent 独立暗色设置中心 (Settings)</b><br/>
+      <sub>统一无边框暗黑设计、频率阈值定制、Fluent下拉框与自启动</sub><br/><br/>
+      <img src="docs/images/settings-preview.png" alt="Fluent暗色设置中心" width="520" />
+    </td>
+  </tr>
+</table>
+
+</div>
+
+---
+
 ## 🌟 核心特性
 
 - **任务栏同列双行极窄胶囊（~95px 宽度）**

@@ -194,6 +194,11 @@ public partial class FlyoutWindow : Window
         _coordinator.ActiveProviderKind = kind;
     }
 
+    internal void ApplySnapshotToUIForExport(UsageSnapshot snapshot)
+    {
+        ApplySnapshotToUI(snapshot);
+    }
+
     private void ApplySnapshotToUI(UsageSnapshot snapshot)
     {
         UpdateTabStyles(snapshot.ProviderKind);
