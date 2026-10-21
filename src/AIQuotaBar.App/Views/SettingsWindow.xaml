@@ -535,22 +535,16 @@
 
                             <!-- 代理模式选择卡片 -->
                             <Border Style="{StaticResource SettingCardBorder}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="网络代理通道模式" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
-                                        <TextBlock Text="智能检测会自动优先嗅探 127.0.0.1:7890、7897 等活跃代理客户端。" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
-                                    </StackPanel>
-                                    <ComboBox x:Name="CmbProxyMode" Grid.Column="1" Width="205" VerticalAlignment="Center" SelectionChanged="OnProxyModeSelectionChanged">
+                                <StackPanel>
+                                    <TextBlock Text="网络代理通道模式" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                    <TextBlock Text="智能检测会自动优先嗅探 127.0.0.1:7890、7897 等活跃本地客户端。" FontSize="11" Foreground="#64748B" Margin="0,2,0,8" TextWrapping="Wrap" />
+                                    <ComboBox x:Name="CmbProxyMode" Height="34" SelectionChanged="OnProxyModeSelectionChanged">
                                         <ComboBoxItem Content="智能自动检测 (优先7890)" Tag="Auto" IsSelected="True" />
                                         <ComboBoxItem Content="自定义 HTTP 代理 (指定端口)" Tag="Custom" />
                                         <ComboBoxItem Content="使用 Windows 系统代理" Tag="System" />
                                         <ComboBoxItem Content="直接连接 (禁用代理)" Tag="Direct" />
                                     </ComboBox>
-                                </Grid>
+                                </StackPanel>
                             </Border>
 
                             <!-- 自定义代理地址输入卡片 -->
