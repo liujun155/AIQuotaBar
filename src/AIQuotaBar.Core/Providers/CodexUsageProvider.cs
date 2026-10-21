@@ -136,12 +136,16 @@ public sealed class CodexUsageProvider : IUsageProvider
                 windows.Add(new QuotaWindow(QuotaWindowKind.PeriodLongTerm, "7d", 22.0, DateTimeOffset.Now.AddDays(4), "7天周度"));
             }
 
+            var formattedPlan = !string.IsNullOrWhiteSpace(planType)
+                ? (char.ToUpperInvariant(planType[0]) + (planType.Length > 1 ? planType[1..] : ""))
+                : "Plus";
+
             return new UsageSnapshot(
                 Id,
                 Kind,
                 DisplayName,
-                cred.Email ?? "ChatGPT Plus",
-                planType ?? "Plus",
+                cred.Email,
+                formattedPlan,
                 windows,
                 DateTimeOffset.Now);
         }

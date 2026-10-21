@@ -1,5 +1,6 @@
+using System;
+using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace AIQuotaBar.Core.Credentials;
 
@@ -44,6 +45,7 @@ public sealed class CodexCredentialStore
                 string? token = null;
                 string? accountId = null;
                 string? email = null;
+                string? idToken = null;
 
                 if (root.TryGetProperty("access_token", out var tokEl) && tokEl.ValueKind == JsonValueKind.String)
                 {
@@ -62,10 +64,29 @@ public sealed class CodexCredentialStore
                 {
                     accountId = accEl.GetString();
                 }
+                else if (root.TryGetProperty("tokens", out var tAccEl) && tAccEl.TryGetProperty("account_id", out var subAcc) && subAcc.ValueKind == JsonValueKind.String)
+                {
+                    accountId = subAcc.GetString();
+                }
 
                 if (root.TryGetProperty("email", out var emEl) && emEl.ValueKind == JsonValueKind.String)
                 {
                     email = emEl.GetString();
+                }
+
+                // 尝试从 id_token (JWT Payload) 中提取真实登录账号 Email
+                if (root.TryGetProperty("id_token", out var idTokEl) && idTokEl.ValueKind == JsonValueKind.String)
+                {
+                    idToken = idTokEl.GetString();
+                }
+                else if (root.TryGetProperty("tokens", out var tks) && tks.TryGetProperty("id_token", out var subIdTok) && subIdTok.ValueKind == JsonValueKind.String)
+                {
+                    idToken = subIdTok.GetString();
+                }
+
+                if (string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(idToken))
+                {
+                    email = TryExtractEmailFromJwt(idToken);
                 }
 
                 if (!string.IsNullOrWhiteSpace(token))
@@ -79,6 +100,34 @@ public sealed class CodexCredentialStore
             }
         }
 
+        return null;
+    }
+
+    private static string? TryExtractEmailFromJwt(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length < 2) return null;
+
+            var payload = parts[1].Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            using var doc = JsonDocument.Parse(bytes);
+            if (doc.RootElement.TryGetProperty("email", out var el) && el.ValueKind == JsonValueKind.String)
+            {
+                return el.GetString();
+            }
+        }
+        catch
+        {
+            // 忽略 JWT 解析错误
+        }
         return null;
     }
 }

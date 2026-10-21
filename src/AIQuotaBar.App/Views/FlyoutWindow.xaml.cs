@@ -203,7 +203,33 @@ public partial class FlyoutWindow : Window
     {
         UpdateTabStyles(snapshot.ProviderKind);
 
-        TxtAccountName.Text = $"{snapshot.AccountName ?? snapshot.DisplayName} · {(snapshot.IsMock ? "本地演示" : snapshot.PlanType ?? "Active")}";
+        var account = snapshot.AccountName?.Trim();
+        var plan = (snapshot.IsMock ? "本地演示" : snapshot.PlanType)?.Trim();
+
+        if (!string.IsNullOrWhiteSpace(plan))
+        {
+            plan = char.ToUpperInvariant(plan[0]) + (plan.Length > 1 ? plan[1..] : "");
+        }
+
+        string headerText;
+        if (!string.IsNullOrWhiteSpace(account))
+        {
+            if (!string.IsNullOrWhiteSpace(plan) && !account.Contains(plan, StringComparison.OrdinalIgnoreCase))
+            {
+                headerText = $"{account} · {plan}";
+            }
+            else
+            {
+                headerText = account;
+            }
+        }
+        else
+        {
+            var baseName = snapshot.ProviderKind == ProviderKind.Codex ? "ChatGPT" : snapshot.DisplayName;
+            headerText = string.IsNullOrWhiteSpace(plan) ? baseName : $"{baseName} · {plan}";
+        }
+
+        TxtAccountName.Text = headerText;
 
         if (snapshot.Error == UsageErrorKind.None)
         {
