@@ -18,12 +18,14 @@ public sealed class ClaudeUsageProvider : IUsageProvider
     private const string DefaultUserAgent = "claude-code/2.1.159";
 
     private readonly Func<ClaudeCredential?> _credentialReader;
+    private readonly Func<string?>? _customProxyUrlProvider;
     private readonly HttpClient _http;
 
-    public ClaudeUsageProvider(HttpClient? http = null, Func<ClaudeCredential?>? credentialReader = null)
+    public ClaudeUsageProvider(HttpClient? http = null, Func<ClaudeCredential?>? credentialReader = null, Func<string?>? customProxyUrlProvider = null)
     {
-        _http = http ?? CreateDefaultClient();
         _credentialReader = credentialReader ?? new ClaudeCredentialStore().TryRead;
+        _customProxyUrlProvider = customProxyUrlProvider;
+        _http = http ?? CreateDefaultClient(_customProxyUrlProvider?.Invoke());
     }
 
     public string Id => "claude";
@@ -32,9 +34,9 @@ public sealed class ClaudeUsageProvider : IUsageProvider
 
     public bool HasCredentials() => _credentialReader() is not null;
 
-    public static HttpClient CreateDefaultClient()
+    public static HttpClient CreateDefaultClient(string? customProxyUrl = null)
     {
-        var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        var client = NetworkProxyHelper.CreateHttpClient(customProxyUrl, TimeSpan.FromSeconds(15));
         client.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return client;

@@ -54,6 +54,11 @@ public sealed class AppSettings
     public bool StartWithWindows { get; set; } = true;
 
     /// <summary>
+    /// 自定义网络代理地址（如 http://127.0.0.1:7897）。若为空，则自动智能探测本机代理
+    /// </summary>
+    public string? CustomProxyUrl { get; set; } = null;
+
+    /// <summary>
     /// 启用的提供商列表
     /// </summary>
     public List<ProviderKind> EnabledProviders { get; set; } = new()

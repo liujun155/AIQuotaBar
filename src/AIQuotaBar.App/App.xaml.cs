@@ -58,8 +58,8 @@ public partial class App : Application
 
         var providers = new IUsageProvider[]
         {
-            new CodexUsageProvider(),
-            new ClaudeUsageProvider(),
+            new CodexUsageProvider(customProxyUrlProvider: () => settings.CustomProxyUrl),
+            new ClaudeUsageProvider(customProxyUrlProvider: () => settings.CustomProxyUrl),
             new GeminiUsageProvider(),
         };
 
