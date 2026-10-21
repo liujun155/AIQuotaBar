@@ -2,7 +2,7 @@
 
 Windows 任务栏 AI 配额监控工具。在通知区域旁，用双行胶囊查看剩余额度，点击展开账户详情与重置倒计时。
 
-基于 **WPF + .NET 10**，集成 OpenAI Codex 与 Gemini（通过 Antigravity）的配额查询，并提供 Claude Code 演示界面。
+基于 **WPF + .NET 10**，现已全面集成 OpenAI Codex、Gemini（通过 Antigravity）与 Anthropic Claude Code 的真实配额查询与重置倒计时。
 
 [快速开始](#快速开始) · [平台支持](#平台支持与数据来源) · [使用说明](#使用说明) · [构建与发布](#构建与发布) · [常见问题](#常见问题)
 
@@ -44,7 +44,7 @@ Windows 任务栏 AI 配额监控工具。在通知区域旁，用双行胶囊�
 | --- | --- | --- |
 | OpenAI Codex | 已接入配额查询 | 读取本机登录凭证，请求 ChatGPT 配额接口，解析 `5h` / `7d` 窗口 |
 | Gemini · Antigravity | 已接入配额查询 | 自动发现运行中的 Antigravity 本地语言服务，读取 Gemini 模型额度及可用的周期额度 |
-| Claude Code | 演示实现 | 当前返回固定示例额度；即使检测到凭证，也不会查询真实 Claude 配额 |
+| Claude Code | 已接入真实查询 | 读取本地 Claude Code 凭据 (`.credentials.json`、环境变量或 Windows 凭据管理器)，请求 Anthropic 官方 `api/oauth/usage` 接口，解析 `5h` / `7d` 真实额度 |
 
 ### Codex
 
@@ -66,7 +66,17 @@ Windows 任务栏 AI 配额监控工具。在通知区域旁，用双行胶囊�
 
 此接入方式依赖 Antigravity 本地接口，不能通过单独设置 `GEMINI_API_KEY` 使用，也不代表 Gemini API 的计费余额。
 
-> **数据准确性**：Claude 当前仅用于界面演示。Codex 在缺少凭证时使用演示数据；当前解析逻辑在响应缺少可识别的配额窗口时，也会使用预设值。涉及实际可用额度时，请同时核对对应平台。
+### Claude Code
+
+使用 Anthropic Claude Code 官方账户或 API 凭据。程序支持多种无感探测方式：
+
+1. **本地配置文件**：自动扫描 `%USERPROFILE%\.claude\.credentials.json`、`%USERPROFILE%\.claude\auth.json`、`%APPDATA%\Claude\auth.json`、`%LOCALAPPDATA%\Claude\credentials.json` 等。
+2. **环境变量**：支持直接配置 `CLAUDE_CODE_OAUTH_TOKEN`、`CLAUDE_OAUTH_TOKEN` 或 `ANTHROPIC_API_KEY`。
+3. **Windows 凭据管理器**：自动探测 Windows 凭据保管库中的 `Claude Code` / `Anthropic` 通用凭据。
+
+程序直接通过官方 `https://api.anthropic.com/api/oauth/usage` 接口实时获取真实的 `five_hour`（5h 滚动周期）和 `seven_day`（7d 周度周期）消耗量及重置时间戳；遇到 HTTP 429 时严格遵守 `Retry-After` 退避保护。未登录时将明确提示使用 `claude auth login` 登录，拒绝任何虚假模拟数据。
+
+> **数据准确性**：所有平台（Codex、Gemini、Claude）均已全面接入真实查询通道。涉及实际可用额度时，请同时核对对应官方控制台。
 
 ## 快速开始
 
