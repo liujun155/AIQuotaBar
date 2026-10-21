@@ -1,0 +1,537 @@
+<Window x:Class="AIQuotaBar.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI Quota Bar · 设置中心"
+        Width="760" Height="620"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        Background="#141824"
+        Foreground="#E2E8F0"
+        ResizeMode="CanMinimize"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        FontFamily="Segoe UI Variable, Segoe UI, Microsoft YaHei">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="36"
+                      CornerRadius="8"
+                      GlassFrameThickness="0"
+                      ResizeBorderThickness="4"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- 标题栏按钮样式 -->
+        <Style x:Key="TitleBarBtnStyle" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1FFFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TitleBarCloseBtnStyle" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 侧边导航按钮样式 -->
+        <Style x:Key="NavButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Margin" Value="0,0,0,3" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#14FFFFFF" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2638BDF8" />
+                                <Setter Property="Foreground" Value="#38BDF8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 卡片样式 -->
+        <Style x:Key="SettingCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="#202530" />
+            <Setter Property="BorderBrush" Value="#2B3342" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+
+        <!-- 现代深色下拉项 ComboBoxItem 样式 -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#E2E8F0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}" Margin="2,1">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#252F42" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1E3A5F" />
+                                <Setter Property="Foreground" Value="#38BDF8" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 现代深色 ComboBox 完整控件模板 (高度升级为舒展舒适的 34px) -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#E2E8F0" />
+            <Setter Property="Background" Value="#181D26" />
+            <Setter Property="BorderBrush" Value="#2B3545" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid Height="34">
+                            <!-- 触发器按钮 (未展开时的外框与背景) -->
+                            <ToggleButton x:Name="ToggleButton"
+                                          Focusable="False"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Border"
+                                                Background="#181D26"
+                                                BorderBrush="#2B3545"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="12,0"
+                                                Height="34">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <!-- 下拉箭头 (垂直居中) -->
+                                                <Path Grid.Column="1"
+                                                      Data="M 0 0 L 4.5 4.5 L 9 0 Z"
+                                                      Fill="#94A3B8"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Margin="8,0,0,0" />
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="BorderBrush" Value="#38BDF8" />
+                                                <Setter TargetName="Border" Property="Background" Value="#202634" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <!-- 当前选中的内容呈现 -->
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              Margin="12,0,28,0" />
+
+                            <!-- 展开时的弹出列表 Popup -->
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="#141824"
+                                            BorderBrush="#2B3545"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Margin="0,3,0,5"
+                                            Padding="3">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.5" Color="#000000" />
+                                        </Border.Effect>
+                                        <ScrollViewer SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- 窗口主容器 (带精致微边框与圆角) -->
+    <Border Background="#141824" BorderBrush="#26FFFFFF" BorderThickness="1" CornerRadius="8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36" /> <!-- 沉浸式深色 Fluent 标题栏 -->
+                <RowDefinition Height="*" />  <!-- 主配置区 -->
+                <RowDefinition Height="52" /> <!-- 底部操作栏 -->
+            </Grid.RowDefinitions>
+
+            <!-- 0. 沉浸式深色标题栏 (与左侧栏和暗黑模式无缝融合) -->
+            <Grid Grid.Row="0" Background="#0F121C">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 标题栏左侧应用名称与小图标 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <Image Source="/AIQuotaBar.App;component/Assets/codex.png" Width="15" Height="15" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="AI Quota Bar · 设置中心" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- 标题栏右侧窗口控制按钮 (最小化、关闭) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Style="{StaticResource TitleBarBtnStyle}" Click="OnMinimizeClicked" ToolTip="最小化">
+                        <TextBlock Text="─" FontSize="11" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+                    <Button Style="{StaticResource TitleBarCloseBtnStyle}" Click="OnCloseClicked" ToolTip="关闭">
+                        <TextBlock Text="✕" FontSize="11" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- 1. 主体内容区 (左侧导航 + 右侧设置内容) -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 左侧导航栏 -->
+                <Border Grid.Column="0" Background="#0F121C" BorderBrush="#14FFFFFF" BorderThickness="0,0,1,0" Padding="12,16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="4,0,0,16">
+                            <TextBlock Text="AI Quota Bar" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" />
+                            <TextBlock Text="系统参数与多模型设置" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1">
+                            <RadioButton x:Name="NavBtnPolling" Content="⏱️ 刷新与智能加速" Style="{StaticResource NavButtonStyle}" IsChecked="True" Checked="OnNavChanged" />
+                            <RadioButton x:Name="NavBtnProviders" Content="🌐 AI 模型平台管理" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
+                            <RadioButton x:Name="NavBtnAppearance" Content="🎨 外观与色彩分级" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
+                            <RadioButton x:Name="NavBtnGeneral" Content="⚙️ 通用与启动项" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="2" Text="v1.0 · Windows 11 Native" FontSize="10.5" Foreground="#475569" Margin="6,0,0,0" />
+                    </Grid>
+                </Border>
+
+                <!-- 右侧配置内容区 -->
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="20,16">
+                    <StackPanel>
+                        
+                        <!-- ====== Panel 1: 刷新与智能加速 (核心) ====== -->
+                        <StackPanel x:Name="PanelPolling" Visibility="Visible">
+                            <TextBlock Text="⏱️ 轮询频率与智能加速刷新" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,4" />
+                            <TextBlock Text="配置额度接口常规检查周期，以及当配额不足时的自适应高频刷新规则。" FontSize="11.5" Foreground="#94A3B8" Margin="0,0,0,16" />
+
+                            <!-- 常规刷新频率 -->
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="常规轮询间隔 (Normal Interval)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock Text="额度充足时生效，避免频繁发起请求占用资源。" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <ComboBox x:Name="CmbNormalInterval" Grid.Column="1" Width="130" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="15 秒" Tag="15" />
+                                        <ComboBoxItem Content="30 秒" Tag="30" />
+                                        <ComboBoxItem Content="1 分钟" Tag="60" />
+                                        <ComboBoxItem Content="2 分钟 (推荐)" Tag="120" IsSelected="True" />
+                                        <ComboBoxItem Content="5 分钟" Tag="300" />
+                                    </ComboBox>
+                                </Grid>
+                            </Border>
+
+                            <!-- ⭐ 智能低额度加速卡片 ⭐ -->
+                            <Border Background="#1A182E47" BorderBrush="#4D38BDF8" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⚡ 低额度智能加速刷新" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" />
+                                                <Border Background="#2638BDF8" CornerRadius="4" Padding="4,1" Margin="6,0,0,0">
+                                                    <TextBlock Text="自适应" FontSize="10" Foreground="#38BDF8" FontWeight="SemiBold" />
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="当任一额度低于预设值时自动提速，第一时间获知配额释放恢复。" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkLowQuotaAccelerate" Grid.Column="1" IsChecked="True" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 触发阈值 -->
+                                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                            <TextBlock Text="触发阈值:" FontSize="11" Foreground="#CBD5E1" Margin="0,0,0,4" />
+                                            <ComboBox x:Name="CmbTriggerThreshold">
+                                                <ComboBoxItem Content="低于 10% 时" Tag="10" />
+                                                <ComboBoxItem Content="低于 15% 时" Tag="15" />
+                                                <ComboBoxItem Content="低于 20% 时 (推荐)" Tag="20" IsSelected="True" />
+                                                <ComboBoxItem Content="低于 30% 时" Tag="30" />
+                                            </ComboBox>
+                                        </StackPanel>
+
+                                        <!-- 加速后频率 -->
+                                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                            <TextBlock Text="自动切换为高速频率:" FontSize="11" Foreground="#CBD5E1" Margin="0,0,0,4" />
+                                            <ComboBox x:Name="CmbAcceleratedInterval">
+                                                <ComboBoxItem Content="每 30 秒刷新一次" Tag="30" />
+                                                <ComboBoxItem Content="每 1 分钟刷新一次 (推荐)" Tag="60" IsSelected="True" />
+                                                <ComboBoxItem Content="每 2 分钟刷新一次" Tag="120" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 429 Retry-After 遵循 -->
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="HTTP 429 智能冷却" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock Text="严格遵守服务端返回的 Retry-After 标头倒计时，避免重复触发封禁。" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkHonorRetryAfter" Grid.Column="1" IsChecked="True" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ====== Panel 2: 多平台管理 ====== -->
+                        <StackPanel x:Name="PanelProviders" Visibility="Collapsed">
+                            <TextBlock Text="🌐 AI 模型平台管理" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,4" />
+                            <TextBlock Text="管理支持的模型平台与凭证检测状态。" FontSize="11.5" Foreground="#94A3B8" Margin="0,0,0,16" />
+
+                            <!-- OpenAI Codex -->
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Grid.Column="0" Source="/AIQuotaBar.App;component/Assets/codex.png" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="OpenAI Codex (ChatGPT Plus/Team)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock x:Name="TxtCodexStatus" Text="探测路径: ~/.codex/credentials.json" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkEnableCodex" Grid.Column="2" IsChecked="True" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Claude Code -->
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Grid.Column="0" Source="/AIQuotaBar.App;component/Assets/claude.png" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Claude Code (Anthropic)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock x:Name="TxtClaudeStatus" Text="探测路径: ~/.claude/auth.json 或 ANTHROPIC_API_KEY" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkEnableClaude" Grid.Column="2" IsChecked="True" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Google Gemini -->
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Grid.Column="0" Source="/AIQuotaBar.App;component/Assets/gemini.png" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Google Gemini (Antigravity)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock x:Name="TxtGeminiStatus" Text="自动读取已运行并登录的 Antigravity 本地额度" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkEnableGemini" Grid.Column="2" IsChecked="True" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ====== Panel 3: 外观与色彩 ====== -->
+                        <StackPanel x:Name="PanelAppearance" Visibility="Collapsed">
+                            <TextBlock Text="🎨 外观与色彩分级" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,4" />
+                            <TextBlock Text="配置任务栏双行胶囊的动态变色阈值。" FontSize="11.5" Foreground="#94A3B8" Margin="0,0,0,16" />
+
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <StackPanel>
+                                    <TextBlock Text="色彩区间分界线定义" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" Margin="0,0,0,10" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                <Border Width="8" Height="8" CornerRadius="4" Background="#10B981" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="绿色充足分界线 (大于等于 %):" FontSize="11" Foreground="#10B981" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <ComboBox x:Name="CmbGreenThreshold">
+                                                <ComboBoxItem Content="40%" Tag="40" />
+                                                <ComboBoxItem Content="50% (推荐)" Tag="50" IsSelected="True" />
+                                                <ComboBoxItem Content="60%" Tag="60" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                <Border Width="8" Height="8" CornerRadius="4" Background="#EF4444" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="红色告警分界线 (低于 %):" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <ComboBox x:Name="CmbYellowThreshold">
+                                                <ComboBoxItem Content="15%" Tag="15" />
+                                                <ComboBoxItem Content="20% (推荐)" Tag="20" IsSelected="True" />
+                                                <ComboBoxItem Content="25%" Tag="25" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ====== Panel 4: 通用与启动项 ====== -->
+                        <StackPanel x:Name="PanelGeneral" Visibility="Collapsed">
+                            <TextBlock Text="⚙️ 通用与启动项" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,4" />
+                            <TextBlock Text="系统开机自动启动配置。" FontSize="11.5" Foreground="#94A3B8" Margin="0,0,0,16" />
+
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="开机自动启动 (Start on Windows Boot)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock Text="Windows 开机登录后自动在任务栏静默加载驻留。" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkStartWithWindows" Grid.Column="1" IsChecked="True" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- 2. 底部确定与取消操作栏 -->
+            <Border Grid.Row="2" Background="#0F121C" BorderBrush="#14FFFFFF" BorderThickness="0,1,0,0" Padding="16,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="TxtSaveFeedback" Grid.Column="0" Text="修改后点击“保存并应用”生效" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="重置默认" Background="#14FFFFFF" Foreground="#94A3B8" BorderThickness="0" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="OnResetDefaultsClicked" />
+                        <Button Content="保存并应用" Background="#0284C7" Foreground="#FFFFFF" FontWeight="SemiBold" BorderThickness="0" Padding="16,6" Cursor="Hand" Click="OnSaveClicked" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,91 @@
+<Window x:Class="AIQuotaBar.App.Views.CapsuleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:AIQuotaBar.App.Converters"
+        Title="AIQuotaBar Capsule"
+        Width="108" Height="34"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        Background="#121724"
+        Topmost="False"
+        ShowActivated="False"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        MouseLeftButtonUp="OnCapsuleClicked"
+        MouseWheel="OnMouseWheelSwitched">
+
+    <Window.Resources>
+        <conv:PercentToColorConverter x:Key="PercentToColorConv" />
+        <conv:DoubleToPercentStringConverter x:Key="DoubleToPercentConv" />
+
+        <Style x:Key="TaskbarBarTrackStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="5" />
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="Maximum" Value="100" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="PART_Track">
+                            <Border Background="#25FFFFFF" CornerRadius="2.5" />
+                            <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="2.5" Background="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="CapsuleBorder"
+            Background="#E6121724"
+            BorderBrush="#2BFFFFFF"
+            BorderThickness="1"
+            CornerRadius="7"
+            Padding="4,2,5,2"
+            Cursor="Hand">
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧：模型官方标识图标 -->
+            <Border Grid.Column="0" Width="18" VerticalAlignment="Center" Margin="0,0,3,0">
+                <Image x:Name="ImgProviderIcon" Width="15" Height="15" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+            </Border>
+
+            <!-- 右侧：双行上下并列 (上行5h/短期，下行7d/周期) -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                
+                <!-- 第一行 -->
+                <Grid Margin="0,0,0,1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="TxtTag1" Grid.Column="0" Text="5h" FontSize="9" FontWeight="SemiBold" Foreground="#94A3B8" Width="14" VerticalAlignment="Center" />
+                    <ProgressBar x:Name="Prog1" Grid.Column="1" Style="{StaticResource TaskbarBarTrackStyle}" Value="0" VerticalAlignment="Center" Margin="2,0,3,0" />
+                    <TextBlock x:Name="TxtVal1" Grid.Column="2" Text="--" FontSize="9.5" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="#10B981" Width="24" TextAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- 第二行 -->
+                <Grid x:Name="CapsuleSecondaryRow">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="TxtTag2" Grid.Column="0" Text="7d" FontSize="9" FontWeight="SemiBold" Foreground="#94A3B8" Width="14" VerticalAlignment="Center" />
+                    <ProgressBar x:Name="Prog2" Grid.Column="1" Style="{StaticResource TaskbarBarTrackStyle}" Value="0" VerticalAlignment="Center" Margin="2,0,3,0" />
+                    <TextBlock x:Name="TxtVal2" Grid.Column="2" Text="--" FontSize="9.5" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="#38BDF8" Width="24" TextAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
+

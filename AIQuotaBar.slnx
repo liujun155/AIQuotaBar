@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AIQuotaBar.App/AIQuotaBar.App.csproj" />
+    <Project Path="src/AIQuotaBar.Tests/AIQuotaBar.Tests.csproj" />
+  </Folder>
+</Solution>
