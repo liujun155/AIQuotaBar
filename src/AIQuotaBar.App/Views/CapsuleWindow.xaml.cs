@@ -21,7 +21,6 @@ public partial class CapsuleWindow : Window
     private readonly TaskbarHost _host;
     private FlyoutWindow? _flyoutWindow;
     private SettingsWindow? _settingsWindow;
-    private TaskbarMouseInput? _mouseInput;
     private QuotaToolTipWindow? _quotaToolTip;
     private readonly Stopwatch _hoverDuration = new();
     private readonly DispatcherTimer _hoverTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
@@ -45,14 +44,6 @@ public partial class CapsuleWindow : Window
         {
             _host.Attach();
             _hoverTimer.Start();
-            _mouseInput = new TaskbarMouseInput(this, ToggleFlyout, () =>
-            {
-                if (ContextMenu == null) return;
-                HideQuotaToolTip();
-                ContextMenu.PlacementTarget = this;
-                ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
-                ContextMenu.IsOpen = true;
-            }, SwitchProvider);
             _coordinator.SnapshotUpdated += OnSnapshotUpdated;
             _coordinator.ActiveProviderChanged += OnActiveProviderChanged;
 
@@ -68,7 +59,6 @@ public partial class CapsuleWindow : Window
             _host.Detach();
             _hoverTimer.Stop();
             _quotaToolTip?.Close();
-            _mouseInput?.Dispose();
             _flyoutWindow?.Close();
             _settingsWindow?.Close();
             _coordinator.SnapshotUpdated -= OnSnapshotUpdated;
@@ -268,6 +258,18 @@ public partial class CapsuleWindow : Window
         if (e.ChangedButton == MouseButton.Left)
         {
             ToggleFlyout();
+        }
+    }
+
+    private void OnCapsuleRightClicked(object sender, MouseButtonEventArgs e)
+    {
+        if (ContextMenu != null)
+        {
+            HideQuotaToolTip();
+            ContextMenu.PlacementTarget = this;
+            ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+            ContextMenu.IsOpen = true;
+            e.Handled = true;
         }
     }
 

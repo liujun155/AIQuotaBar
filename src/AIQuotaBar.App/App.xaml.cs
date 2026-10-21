@@ -86,15 +86,6 @@ public partial class App : Application
         };
 
         _coordinator = new RefreshCoordinator(settings, providers);
-        _coordinator.SnapshotUpdated += _ =>
-        {
-            // 每次轮询完成后，在后台轻量压缩工作集
-            Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, () =>
-            {
-                NativeMethods.TrimWorkingSet();
-            });
-        };
-
         _capsule = new CapsuleWindow(_coordinator, settings);
         _capsule.Show();
 
@@ -106,15 +97,6 @@ public partial class App : Application
             onReattachCapsule: () => _capsule.ReattachToTaskbar());
 
         _coordinator.Start();
-
-        // 启动 1.5 秒完成 JIT 预热后，自动深度清理并紧缩 Working Set
-        var startupTrimTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
-        startupTrimTimer.Tick += (_, _) =>
-        {
-            startupTrimTimer.Stop();
-            NativeMethods.TrimWorkingSet();
-        };
-        startupTrimTimer.Start();
     }
 
     protected override void OnExit(ExitEventArgs e)

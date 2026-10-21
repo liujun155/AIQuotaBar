@@ -151,21 +151,4 @@ internal static class NativeMethods
         public Guid guidItem;
         public IntPtr hBalloonIcon;
     }
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool SetProcessWorkingSetSize(IntPtr hProcess, IntPtr dwMinimumWorkingSetSize, IntPtr dwMaximumWorkingSetSize);
-
-    public static void TrimWorkingSet()
-    {
-        try
-        {
-            GC.Collect(2, GCCollectionMode.Aggressive, true, true);
-            GC.WaitForPendingFinalizers();
-            using var proc = System.Diagnostics.Process.GetCurrentProcess();
-            SetProcessWorkingSetSize(proc.Handle, new IntPtr(-1), new IntPtr(-1));
-        }
-        catch
-        {
-        }
-    }
 }
