@@ -131,6 +131,8 @@ dotnet run --project src/AIQuotaBar.App/AIQuotaBar.App.csproj
 | 遵循 `Retry-After` | 开启 |
 | 绿色 / 黄色阈值 | 50% / 20% |
 | 启用的平台 | Codex、Claude、Gemini |
+| 代理通道模式 | 智能自动检测 (优先探测 7890 / 7897 端口) |
+| 自定义代理地址 | `http://127.0.0.1:7890` (支持一键连通性测试) |
 
 开机自启动可在设置中心的常规选项中开启或关闭。若移动了可执行文件，请重新保存自启动设置以更新路径。
 

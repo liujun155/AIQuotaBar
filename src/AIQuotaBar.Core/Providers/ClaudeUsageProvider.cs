@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AIQuotaBar.Core.Credentials;
 using AIQuotaBar.Core.Models;
+using AIQuotaBar.Core.Settings;
 
 namespace AIQuotaBar.Core.Providers;
 
@@ -18,14 +19,18 @@ public sealed class ClaudeUsageProvider : IUsageProvider
     private const string DefaultUserAgent = "claude-code/2.1.159";
 
     private readonly Func<ClaudeCredential?> _credentialReader;
-    private readonly Func<string?>? _customProxyUrlProvider;
-    private readonly HttpClient _http;
+    private readonly Func<(AppProxyMode Mode, string? CustomUrl)>? _proxyConfigProvider;
+    private HttpClient _http;
 
-    public ClaudeUsageProvider(HttpClient? http = null, Func<ClaudeCredential?>? credentialReader = null, Func<string?>? customProxyUrlProvider = null)
+    public ClaudeUsageProvider(
+        HttpClient? http = null,
+        Func<ClaudeCredential?>? credentialReader = null,
+        Func<(AppProxyMode Mode, string? CustomUrl)>? proxyConfigProvider = null)
     {
         _credentialReader = credentialReader ?? new ClaudeCredentialStore().TryRead;
-        _customProxyUrlProvider = customProxyUrlProvider;
-        _http = http ?? CreateDefaultClient(_customProxyUrlProvider?.Invoke());
+        _proxyConfigProvider = proxyConfigProvider;
+        var cfg = _proxyConfigProvider?.Invoke() ?? (AppProxyMode.Auto, null);
+        _http = http ?? CreateDefaultClient(cfg.Mode, cfg.CustomUrl);
     }
 
     public string Id => "claude";
@@ -34,13 +39,15 @@ public sealed class ClaudeUsageProvider : IUsageProvider
 
     public bool HasCredentials() => _credentialReader() is not null;
 
-    public static HttpClient CreateDefaultClient(string? customProxyUrl = null)
+    public static HttpClient CreateDefaultClient(AppProxyMode mode = AppProxyMode.Auto, string? customProxyUrl = null)
     {
-        var client = NetworkProxyHelper.CreateHttpClient(customProxyUrl, TimeSpan.FromSeconds(15));
+        var client = NetworkProxyHelper.CreateHttpClient(mode, customProxyUrl, TimeSpan.FromSeconds(15));
         client.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return client;
     }
+
+    public static HttpClient CreateDefaultClient(string? customProxyUrl) => CreateDefaultClient(AppProxyMode.Auto, customProxyUrl);
 
     public async Task<UsageSnapshot> FetchAsync(CancellationToken cancellationToken = default)
     {

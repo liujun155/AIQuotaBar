@@ -233,6 +233,70 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- 现代深色输入框样式 -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#1A202C" />
+            <Setter Property="Foreground" Value="#F1F5F9" />
+            <Setter Property="BorderBrush" Value="#334155" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="CaretBrush" Value="#38BDF8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#475569" />
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#38BDF8" />
+                                <Setter TargetName="Border" Property="Background" Value="#1E293B" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 动作按钮样式 -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B" />
+            <Setter Property="Foreground" Value="#E2E8F0" />
+            <Setter Property="BorderBrush" Value="#38BDF8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2D3748" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <!-- 窗口主容器 (带精致微边框与圆角) -->
@@ -292,6 +356,7 @@
                         <StackPanel Grid.Row="1">
                             <RadioButton x:Name="NavBtnPolling" Content="⏱️ 刷新与智能加速" Style="{StaticResource NavButtonStyle}" IsChecked="True" Checked="OnNavChanged" />
                             <RadioButton x:Name="NavBtnProviders" Content="🌐 AI 模型平台管理" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
+                            <RadioButton x:Name="NavBtnNetwork" Content="🌍 网络与代理设置" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
                             <RadioButton x:Name="NavBtnAppearance" Content="🎨 外观与色彩分级" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
                             <RadioButton x:Name="NavBtnGeneral" Content="⚙️ 通用与启动项" Style="{StaticResource NavButtonStyle}" Checked="OnNavChanged" />
                         </StackPanel>
@@ -449,6 +514,56 @@
                                         <TextBlock x:Name="TxtGeminiStatus" Text="自动读取已运行并登录的 Antigravity 本地额度" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
                                     </StackPanel>
                                     <CheckBox x:Name="ChkEnableGemini" Grid.Column="2" IsChecked="True" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ====== Panel: 网络与代理设置 ====== -->
+                        <StackPanel x:Name="PanelNetwork" Visibility="Collapsed">
+                            <TextBlock Text="🌍 网络与代理设置" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,4" />
+                            <TextBlock Text="配置境外 AI 接口 (OpenAI / Anthropic) 的网络路由。默认优先探测 7890 端口。" FontSize="11.5" Foreground="#94A3B8" Margin="0,0,0,16" />
+
+                            <!-- 代理模式选择卡片 -->
+                            <Border Style="{StaticResource SettingCardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="网络代理通道模式" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                        <TextBlock Text="智能检测会自动优先嗅探 127.0.0.1:7890、7897 等活跃代理客户端。" FontSize="11" Foreground="#64748B" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <ComboBox x:Name="CmbProxyMode" Grid.Column="1" Width="205" VerticalAlignment="Center" SelectionChanged="OnProxyModeSelectionChanged">
+                                        <ComboBoxItem Content="智能自动检测 (优先7890)" Tag="Auto" IsSelected="True" />
+                                        <ComboBoxItem Content="自定义 HTTP 代理 (指定端口)" Tag="Custom" />
+                                        <ComboBoxItem Content="使用 Windows 系统代理" Tag="System" />
+                                        <ComboBoxItem Content="直接连接 (禁用代理)" Tag="Direct" />
+                                    </ComboBox>
+                                </Grid>
+                            </Border>
+
+                            <!-- 自定义代理地址输入卡片 -->
+                            <Border x:Name="CardCustomProxy" Style="{StaticResource SettingCardBorder}">
+                                <StackPanel>
+                                    <TextBlock Text="自定义代理服务器地址 (HTTP / SOCKS)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E2E8F0" />
+                                    <TextBlock Text="支持 Clash、v2rayN、Mihomo 等本地代理客户端，默认端口推荐使用 7890。" FontSize="11" Foreground="#64748B" Margin="0,2,0,8" />
+                                    <TextBox x:Name="TxtCustomProxyUrl" Text="http://127.0.0.1:7890" Height="34" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 连通性即时测试卡片 -->
+                            <Border Background="#1A182E47" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="⚡ 代理连通性即时测试" FontSize="12.5" FontWeight="SemiBold" Foreground="#38BDF8" />
+                                        <TextBlock x:Name="TxtProxyTestStatus" Text="测试当前代理配置是否能够成功连通 OpenAI / ChatGPT 接口" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <Button x:Name="BtnTestProxy" Grid.Column="1" Content="测试连接" Style="{StaticResource ActionButtonStyle}" Click="OnTestProxyClicked" VerticalAlignment="Center" />
                                 </Grid>
                             </Border>
                         </StackPanel>

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AIQuotaBar.Core.Credentials;
 using AIQuotaBar.Core.Models;
+using AIQuotaBar.Core.Settings;
 
 namespace AIQuotaBar.Core.Providers;
 
@@ -17,26 +18,32 @@ public sealed class CodexUsageProvider : IUsageProvider
     private const int SessionWindowMaxSeconds = 18000; // 5 hours
 
     private readonly Func<CodexCredential?> _credentialReader;
-    private readonly Func<string?>? _customProxyUrlProvider;
+    private readonly Func<(AppProxyMode Mode, string? CustomUrl)>? _proxyConfigProvider;
     private HttpClient _http;
 
-    public CodexUsageProvider(HttpClient? http = null, Func<CodexCredential?>? credentialReader = null, Func<string?>? customProxyUrlProvider = null)
+    public CodexUsageProvider(
+        HttpClient? http = null,
+        Func<CodexCredential?>? credentialReader = null,
+        Func<(AppProxyMode Mode, string? CustomUrl)>? proxyConfigProvider = null)
     {
         _credentialReader = credentialReader ?? new CodexCredentialStore().TryRead;
-        _customProxyUrlProvider = customProxyUrlProvider;
-        _http = http ?? CreateClient(_customProxyUrlProvider?.Invoke());
+        _proxyConfigProvider = proxyConfigProvider;
+        var cfg = _proxyConfigProvider?.Invoke() ?? (AppProxyMode.Auto, null);
+        _http = http ?? CreateClient(cfg.Mode, cfg.CustomUrl);
     }
 
     public string Id => "codex";
     public ProviderKind Kind => ProviderKind.Codex;
     public string DisplayName => "OpenAI Codex";
 
-    public static HttpClient CreateClient(string? customProxyUrl = null)
+    public static HttpClient CreateClient(AppProxyMode mode = AppProxyMode.Auto, string? customProxyUrl = null)
     {
-        var client = NetworkProxyHelper.CreateHttpClient(customProxyUrl, TimeSpan.FromSeconds(15));
+        var client = NetworkProxyHelper.CreateHttpClient(mode, customProxyUrl, TimeSpan.FromSeconds(15));
         client.DefaultRequestHeaders.UserAgent.ParseAdd("codex-cli");
         return client;
     }
+
+    public static HttpClient CreateClient(string? customProxyUrl) => CreateClient(AppProxyMode.Auto, customProxyUrl);
 
     public bool HasCredentials() => _credentialReader() is not null;
 
@@ -53,7 +60,8 @@ public sealed class CodexUsageProvider : IUsageProvider
         if (errorSnapshot != null)
         {
             // 若网络异常，尝试重新解析一次代理并重试
-            _http = CreateClient(_customProxyUrlProvider?.Invoke());
+            var cfg = _proxyConfigProvider?.Invoke() ?? (AppProxyMode.Auto, null);
+            _http = CreateClient(cfg.Mode, cfg.CustomUrl);
             var retry = await SendRequestAsync(credential, cancellationToken).ConfigureAwait(false);
             if (retry.ErrorSnapshot != null)
             {
@@ -72,7 +80,8 @@ public sealed class CodexUsageProvider : IUsageProvider
             // 如果收到 401/403，有可能是直连被拦截，尝试强制使用本地代理刷新重试一次
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _http = CreateClient(_customProxyUrlProvider?.Invoke());
+                var cfg = _proxyConfigProvider?.Invoke() ?? (AppProxyMode.Auto, null);
+                _http = CreateClient(cfg.Mode, cfg.CustomUrl);
                 using var retryMsg = await _http.SendAsync(CreateHttpRequest(credential), cancellationToken).ConfigureAwait(false);
                 if (retryMsg.IsSuccessStatusCode)
                 {

@@ -3,6 +3,14 @@ using AIQuotaBar.Core.Models;
 
 namespace AIQuotaBar.Core.Settings;
 
+public enum AppProxyMode
+{
+    Auto = 0,    // 智能自动检测 (优先本地常见端口如 7890/7897，然后系统代理)
+    Custom = 1,  // 自定义代理 (使用 CustomProxyUrl，默认 http://127.0.0.1:7890)
+    System = 2,  // 使用 Windows 系统代理 (WinINet)
+    Direct = 3,  // 直连 (禁用代理)
+}
+
 public sealed class AppSettings
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -54,9 +62,14 @@ public sealed class AppSettings
     public bool StartWithWindows { get; set; } = true;
 
     /// <summary>
-    /// 自定义网络代理地址（如 http://127.0.0.1:7897）。若为空，则自动智能探测本机代理
+    /// 网络代理连接模式，默认 Auto (智能自动检测)
     /// </summary>
-    public string? CustomProxyUrl { get; set; } = null;
+    public AppProxyMode ProxyMode { get; set; } = AppProxyMode.Auto;
+
+    /// <summary>
+    /// 自定义网络代理地址，默认 http://127.0.0.1:7890
+    /// </summary>
+    public string CustomProxyUrl { get; set; } = "http://127.0.0.1:7890";
 
     /// <summary>
     /// 启用的提供商列表
