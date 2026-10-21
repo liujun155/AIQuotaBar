@@ -65,27 +65,33 @@ public sealed class ClaudeUsageProvider : IUsageProvider
         HttpResponseMessage response;
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, UsageUrl);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credential.Token);
-            if (!request.Headers.Contains("anthropic-beta"))
-            {
-                request.Headers.TryAddWithoutValidation("anthropic-beta", AnthropicBetaHeader);
-            }
-
-            response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            response = await SendRequestAsync(credential, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return UsageSnapshot.Failure(
-                Id,
-                Kind,
-                DisplayName,
-                UsageErrorKind.Network,
-                $"连接 Anthropic 失败: {ex.Message}");
+            // 首次网络或 SSL 握手异常时，尝试清空代理缓存，等待 500ms 重置 HttpClient 后重试一次
+            NetworkProxyHelper.InvalidateCache();
+            try { await Task.Delay(500, cancellationToken).ConfigureAwait(false); } catch { }
+            var cfg = _proxyConfigProvider?.Invoke() ?? (AppProxyMode.Auto, null);
+            _http = CreateDefaultClient(cfg.Mode, cfg.CustomUrl);
+            try
+            {
+                response = await SendRequestAsync(credential, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception retryEx)
+            {
+                var detail = retryEx.InnerException != null ? $"{retryEx.Message} ({retryEx.InnerException.Message})" : retryEx.Message;
+                return UsageSnapshot.Failure(
+                    Id,
+                    Kind,
+                    DisplayName,
+                    UsageErrorKind.Network,
+                    $"连接 Anthropic 失败: {detail}");
+            }
         }
 
         using (response)
@@ -126,6 +132,18 @@ public sealed class ClaudeUsageProvider : IUsageProvider
             var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             return ParseUsageResponse(content, credential);
         }
+    }
+
+    private async Task<HttpResponseMessage> SendRequestAsync(ClaudeCredential credential, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, UsageUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credential.Token);
+        if (!request.Headers.Contains("anthropic-beta"))
+        {
+            request.Headers.TryAddWithoutValidation("anthropic-beta", AnthropicBetaHeader);
+        }
+
+        return await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     public UsageSnapshot ParseUsageResponse(string json, ClaudeCredential credential)

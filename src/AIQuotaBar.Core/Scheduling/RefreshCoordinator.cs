@@ -16,6 +16,7 @@ public sealed class RefreshCoordinator : IDisposable
 
     private ProviderKind _activeProviderKind;
     private Timer? _timer;
+    private int _consecutiveErrors;
     private bool _disposed;
 
     public RefreshCoordinator(AppSettings settings, IEnumerable<IUsageProvider> providers, Action? saveSettings = null)
@@ -64,9 +65,10 @@ public sealed class RefreshCoordinator : IDisposable
 
         await _refreshLock.WaitAsync().ConfigureAwait(false);
         var requestedKind = _activeProviderKind;
-        RefreshStateChanged?.Invoke(requestedKind, true);
         try
         {
+            try { RefreshStateChanged?.Invoke(requestedKind, true); } catch { }
+
             if (!_providers.TryGetValue(requestedKind, out var provider))
             {
                 return;
@@ -92,12 +94,12 @@ public sealed class RefreshCoordinator : IDisposable
             if (_activeProviderKind == requestedKind)
             {
                 SnapshotUpdated?.Invoke(fallback);
-                ScheduleNext(TimeSpan.FromSeconds(Math.Max(10, _settings.NormalIntervalSeconds)), false);
+                PlanNextRefresh(fallback);
             }
         }
         finally
         {
-            RefreshStateChanged?.Invoke(requestedKind, false);
+            try { RefreshStateChanged?.Invoke(requestedKind, false); } catch { }
             _refreshLock.Release();
         }
     }
@@ -123,7 +125,19 @@ public sealed class RefreshCoordinator : IDisposable
             return;
         }
 
-        // 2. 检查是否触发低额度智能加速刷新
+        // 2. 网络异常或临时服务器异常：启动自适应快速故障重试 (5s -> 10s -> 15s -> 最多 30s)
+        if (snapshot.Error is UsageErrorKind.Network or UsageErrorKind.Unexpected or UsageErrorKind.Server)
+        {
+            _consecutiveErrors++;
+            var retrySeconds = Math.Min(30, Math.Max(5, 5 * _consecutiveErrors));
+            ScheduleNext(TimeSpan.FromSeconds(retrySeconds), true);
+            return;
+        }
+
+        // 成功获取或非瞬态配置错误，重置异常计数器
+        _consecutiveErrors = 0;
+
+        // 3. 检查是否触发低额度智能加速刷新
         var minPercent = snapshot.MinRemainingPercent;
         if (_settings.LowQuotaAccelerateEnabled && minPercent < _settings.LowQuotaThresholdPercent)
         {
@@ -132,7 +146,7 @@ public sealed class RefreshCoordinator : IDisposable
             return;
         }
 
-        // 3. 正常轮询
+        // 4. 正常轮询
         var normal = TimeSpan.FromSeconds(Math.Max(10, _settings.NormalIntervalSeconds));
         ScheduleNext(normal, false);
     }
@@ -145,7 +159,17 @@ public sealed class RefreshCoordinator : IDisposable
         _timer?.Dispose();
         _timer = new Timer(async _ =>
         {
-            await RefreshNowAsync().ConfigureAwait(false);
+            try
+            {
+                await RefreshNowAsync().ConfigureAwait(false);
+            }
+            catch
+            {
+                if (!_disposed)
+                {
+                    ScheduleNext(TimeSpan.FromSeconds(10), true);
+                }
+            }
         }, null, delay, Timeout.InfiniteTimeSpan);
     }
 

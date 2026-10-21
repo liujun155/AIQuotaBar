@@ -59,7 +59,9 @@ public sealed class CodexUsageProvider : IUsageProvider
         var (response, errorSnapshot) = await SendRequestAsync(credential, cancellationToken).ConfigureAwait(false);
         if (errorSnapshot != null)
         {
-            // 若网络异常，尝试重新解析一次代理并重试
+            // 若网络异常，重置代理嗅探缓存，稍作等待(500ms)让网络/Socket通道重置后重试一次
+            NetworkProxyHelper.InvalidateCache();
+            try { await Task.Delay(500, cancellationToken).ConfigureAwait(false); } catch { }
             var cfg = _proxyConfigProvider?.Invoke() ?? (AppProxyMode.Auto, null);
             _http = CreateClient(cfg.Mode, cfg.CustomUrl);
             var retry = await SendRequestAsync(credential, cancellationToken).ConfigureAwait(false);
@@ -107,7 +109,8 @@ public sealed class CodexUsageProvider : IUsageProvider
         }
         catch (HttpRequestException ex)
         {
-            return (null, UsageSnapshot.Failure(Id, Kind, DisplayName, UsageErrorKind.Network, $"网络异常: {ex.Message}", accountName: credential.Email));
+            var detail = ex.InnerException != null ? $"{ex.Message} ({ex.InnerException.Message})" : ex.Message;
+            return (null, UsageSnapshot.Failure(Id, Kind, DisplayName, UsageErrorKind.Network, $"网络异常: {detail}", accountName: credential.Email));
         }
     }
 

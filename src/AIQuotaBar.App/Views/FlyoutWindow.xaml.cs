@@ -35,6 +35,14 @@ public partial class FlyoutWindow : Window
             {
                 UpdateCountdowns();
                 _countdownTimer.Start();
+
+                // 若当前快照处于网络异常或失败状态，打开详情面板时立即自动发起一次静默刷新重试
+                var snapshot = _coordinator.CurrentSnapshot;
+                if (snapshot != null && !snapshot.IsOk)
+                {
+                    StartSpinAnimation();
+                    _ = _coordinator.RefreshNowAsync();
+                }
             }
             else
             {

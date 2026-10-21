@@ -17,6 +17,14 @@ public static class NetworkProxyHelper
     private static (IWebProxy? Proxy, DateTime CheckedAt)? _cachedProxy;
     private static readonly object LockObj = new();
 
+    public static void InvalidateCache()
+    {
+        lock (LockObj)
+        {
+            _cachedProxy = null;
+        }
+    }
+
     public static IWebProxy? ResolveProxy(AppProxyMode mode = AppProxyMode.Auto, string? customProxyUrl = null)
     {
         switch (mode)
@@ -93,7 +101,14 @@ public static class NetworkProxyHelper
             Proxy = proxy,
             UseProxy = proxy != null,
             AutomaticDecompression = DecompressionMethods.All,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(1),
+            PooledConnectionIdleTimeout = TimeSpan.FromSeconds(20),
+            ConnectTimeout = TimeSpan.FromSeconds(10),
+            EnableMultipleHttp2Connections = true,
+            SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+            {
+                EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+            }
         };
 
         var client = new HttpClient(handler)

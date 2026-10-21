@@ -168,4 +168,37 @@ public class SchedulerTests
         Assert.Equal(TimeSpan.FromSeconds(55), plannedDelay.Value);
         Assert.True(isAccelerated.HasValue && isAccelerated.Value);
     }
+
+    [Fact]
+    public async Task RefreshCoordinator_PerformsQuickRetry_OnNetworkError()
+    {
+        var settings = new AppSettings
+        {
+            NormalIntervalSeconds = 120,
+        };
+
+        var provider = new MockProvider();
+        provider.SnapshotToReturn = UsageSnapshot.Failure(
+            "mock", ProviderKind.Codex, "Mock",
+            UsageErrorKind.Network,
+            "网络异常: The SSL connection could not be established");
+
+        using var coordinator = new RefreshCoordinator(settings, new[] { provider });
+
+        TimeSpan? plannedDelay = null;
+        bool? isAccelerated = null;
+
+        coordinator.NextRefreshPlanned += (delay, acc) =>
+        {
+            plannedDelay = delay;
+            isAccelerated = acc;
+        };
+
+        await coordinator.RefreshNowAsync();
+
+        // 遇到网络异常时，自适应快速重试 5s，绝非硬等 120s
+        Assert.NotNull(plannedDelay);
+        Assert.Equal(TimeSpan.FromSeconds(5), plannedDelay.Value);
+        Assert.True(isAccelerated.HasValue && isAccelerated.Value);
+    }
 }
