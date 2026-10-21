@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using AIQuotaBar.App.Interop;
+using AIQuotaBar.App.Services;
 using AIQuotaBar.App.Views;
 using AIQuotaBar.Core.Providers;
 using AIQuotaBar.Core.Scheduling;
@@ -15,6 +16,7 @@ public partial class App : Application
     private static Mutex? _singleInstanceMutex;
     private RefreshCoordinator? _coordinator;
     private CapsuleWindow? _capsule;
+    private TrayIconService? _trayService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -96,6 +98,13 @@ public partial class App : Application
         _capsule = new CapsuleWindow(_coordinator, settings);
         _capsule.Show();
 
+        // 初始化常驻系统托盘图标服务 (保障任务栏消失或 Explorer 重启时可随时呼出/退出)
+        _trayService = new TrayIconService(
+            _coordinator,
+            onToggleFlyout: () => _capsule.ToggleFlyout(),
+            onOpenSettings: () => _capsule.OpenSettings(),
+            onReattachCapsule: () => _capsule.ReattachToTaskbar());
+
         _coordinator.Start();
 
         // 启动 1.5 秒完成 JIT 预热后，自动深度清理并紧缩 Working Set
@@ -110,6 +119,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _trayService?.Dispose();
         _coordinator?.Dispose();
         _singleInstanceMutex?.Dispose();
         base.OnExit(e);

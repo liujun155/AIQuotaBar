@@ -127,6 +127,10 @@ public partial class CapsuleWindow : Window
 
         menu.Items.Add(switchMenu);
 
+        var reattachItem = new MenuItem { Header = "🔄 重新吸附任务栏胶囊" };
+        reattachItem.Click += (_, _) => ReattachToTaskbar();
+        menu.Items.Add(reattachItem);
+
         var settingsItem = new MenuItem { Header = "⚙️ 打开设置中心..." };
         settingsItem.Click += (_, _) => OpenSettings();
         menu.Items.Add(settingsItem);
@@ -292,7 +296,7 @@ public partial class CapsuleWindow : Window
         _coordinator.ActiveProviderKind = providers[index];
     }
 
-    private void ToggleFlyout()
+    public void ToggleFlyout()
     {
         HideQuotaToolTip();
         if (_flyoutWindow == null || !_flyoutWindow.IsLoaded)
@@ -311,6 +315,13 @@ public partial class CapsuleWindow : Window
             _host.PositionFlyout(_flyoutWindow);
             _flyoutWindow.Activate();
         }
+    }
+
+    public void ReattachToTaskbar()
+    {
+        _host.Attach();
+        _host.Reposition();
+        Show();
     }
 
     public void OpenSettings()
