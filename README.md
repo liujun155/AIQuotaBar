@@ -117,6 +117,17 @@ dotnet run --project src/AIQuotaBar.App/AIQuotaBar.App.csproj
 
 开机自启动可在设置中心的常规选项中开启或关闭。若移动了可执行文件，请重新保存自启动设置以更新路径。
 
+## 📥 下载安装
+
+前往 [GitHub Releases (v1.0.0)](https://github.com/liujun155/AIQuotaBar/releases/tag/v1.0.0) 获取最新预打包程序：
+
+| 版本包 | 体积 | 特点 | 适用场景 |
+| :--- | :--- | :--- | :--- |
+| **[AIQuotaBar-v1.0.0-win-x64-standalone.zip](https://github.com/liujun155/AIQuotaBar/releases/download/v1.0.0/AIQuotaBar-v1.0.0-win-x64-standalone.zip)** | ~56 MB | **内置 .NET 运行时**，解压即用，无需安装额外组件 | **推荐**（开箱即用） |
+| **[AIQuotaBar-v1.0.0-win-x64-framework-dependent.zip](https://github.com/liujun155/AIQuotaBar/releases/download/v1.0.0/AIQuotaBar-v1.0.0-win-x64-framework-dependent.zip)** | ~254 KB | 单文件绿色版，体积仅几百 KB | 需本地已安装 [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) |
+
+---
+
 ## 构建与发布
 
 ### 开发环境
