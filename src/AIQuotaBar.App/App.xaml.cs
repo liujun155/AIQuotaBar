@@ -39,6 +39,26 @@ public partial class App : Application
             return;
         }
 
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            try
+            {
+                System.IO.File.AppendAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app-crash.log"),
+                    $"[{DateTime.Now}] AppDomain: {args.ExceptionObject}\n");
+            }
+            catch { }
+        };
+
+        DispatcherUnhandledException += (_, args) =>
+        {
+            try
+            {
+                System.IO.File.AppendAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app-crash.log"),
+                    $"[{DateTime.Now}] Dispatcher: {args.Exception}\n");
+            }
+            catch { }
+        };
+
         // 1. 禁用 WPF 沉重的 DirectX 3D 显卡驱动渲染上下文，微型任务栏窗口采用纯净软件渲染
         // 此项优化可瞬间节省 60MB ~ 90MB 的显存映射与显卡驱动运行时内存！
         System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
