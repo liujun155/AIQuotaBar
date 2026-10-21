@@ -25,3 +25,5 @@ bld/
 *.tmp
 *.log
 dist-standalone/
+
+publish-release/
