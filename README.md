@@ -1,6 +1,13 @@
+<p align="center">
+  <img src="docs/images/app.png" alt="AI Quota Bar Logo" width="108" height="108" />
+</p>
+
 # AI Quota Bar
 
-Windows 任务栏 AI 配额监控工具。在通知区域旁，用双行胶囊查看剩余额度，点击展开账户详情与重置倒计时。
+<p align="center">
+  <b>Windows 任务栏 AI 配额监控微件</b><br>
+  <i>双行微型胶囊贴合任务栏，实时监控 OpenAI Codex、Google Gemini 与 Anthropic Claude 配额及秒级倒计时。</i>
+</p>
 
 基于 **WPF + .NET 10**，现已全面集成 OpenAI Codex、Gemini（通过 Antigravity）与 Anthropic Claude Code 的真实配额查询与重置倒计时。
 

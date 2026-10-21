@@ -25,6 +25,20 @@ public partial class App : Application
             return;
         }
 
+        if (e.Args != null && e.Args.Any(a => a.Equals("--generate-icon", StringComparison.OrdinalIgnoreCase)))
+        {
+            var dir = new System.IO.DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            while (dir != null && !System.IO.File.Exists(System.IO.Path.Combine(dir.FullName, "AIQuotaBar.slnx")))
+            {
+                dir = dir.Parent;
+            }
+            var root = dir?.FullName ?? AppDomain.CurrentDomain.BaseDirectory;
+            IconGenerator.GenerateIcons(System.IO.Path.Combine(root, "src", "AIQuotaBar.App", "Assets"));
+            IconGenerator.GenerateIcons(System.IO.Path.Combine(root, "docs", "images"));
+            Shutdown();
+            return;
+        }
+
         // 1. 禁用 WPF 沉重的 DirectX 3D 显卡驱动渲染上下文，微型任务栏窗口采用纯净软件渲染
         // 此项优化可瞬间节省 60MB ~ 90MB 的显存映射与显卡驱动运行时内存！
         System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
