@@ -131,6 +131,15 @@ public partial class CapsuleWindow : Window
         exitItem.Click += (_, _) => Application.Current.Shutdown();
         menu.Items.Add(exitItem);
 
+        menu.Opened += (s, _) =>
+        {
+            if (s is ContextMenu cm && PresentationSource.FromVisual(cm) is HwndSource source)
+            {
+                NativeMethods.SetWindowPos(source.Handle, NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
+                    NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
+            }
+        };
+
         ContextMenu = menu;
     }
 
@@ -275,7 +284,18 @@ public partial class CapsuleWindow : Window
         {
             HideQuotaToolTip();
             ContextMenu.PlacementTarget = this;
-            ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+            ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Custom;
+            ContextMenu.CustomPopupPlacementCallback = (popupSize, targetSize, offset) =>
+            {
+                // 优先弹出于胶囊上方（底边距离胶囊顶部 6px 留白，完全避开任务栏），备选下方（任务栏在屏幕顶端时）
+                var pointAbove = new System.Windows.Point(0, -popupSize.Height - 6);
+                var pointBelow = new System.Windows.Point(0, targetSize.Height + 6);
+                return new[]
+                {
+                    new System.Windows.Controls.Primitives.CustomPopupPlacement(pointAbove, System.Windows.Controls.Primitives.PopupPrimaryAxis.Horizontal),
+                    new System.Windows.Controls.Primitives.CustomPopupPlacement(pointBelow, System.Windows.Controls.Primitives.PopupPrimaryAxis.Horizontal),
+                };
+            };
             ContextMenu.IsOpen = true;
             e.Handled = true;
         }
