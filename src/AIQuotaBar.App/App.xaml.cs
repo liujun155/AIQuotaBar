@@ -69,7 +69,7 @@ public partial class App : Application
         _singleInstanceMutex = new Mutex(true, mutexName, out var isNewInstance);
         if (!isNewInstance)
         {
-            MessageBox.Show("AI Quota Bar 已在后台运行中，请在任务栏右侧通知区查看！", "AI Quota Bar", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("AI Quota Bar 已在运行中，请在任务栏右侧胶囊直接查看或右键退出。", "AI Quota Bar", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
@@ -92,8 +92,13 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        _coordinator?.Dispose();
-        _singleInstanceMutex?.Dispose();
+        try
+        {
+            _coordinator?.Dispose();
+            _singleInstanceMutex?.Dispose();
+        }
+        catch { }
         base.OnExit(e);
+        Environment.Exit(0);
     }
 }

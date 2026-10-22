@@ -64,6 +64,11 @@ public partial class CapsuleWindow : Window
             _coordinator.SnapshotUpdated -= OnSnapshotUpdated;
             _coordinator.ActiveProviderChanged -= OnActiveProviderChanged;
         };
+
+        Closed += (_, _) =>
+        {
+            Application.Current.Shutdown();
+        };
     }
 
     private void BuildContextMenu()
