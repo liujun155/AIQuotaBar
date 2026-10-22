@@ -213,8 +213,15 @@ public partial class CapsuleWindow : Window
         if (_flyoutWindow?.IsVisible == true || _settingsWindow?.IsVisible == true || ContextMenu?.IsOpen == true ||
             !NativeMethods.IsWindowVisible(handle) || !NativeMethods.GetCursorPos(out var cursor) ||
             !NativeMethods.GetWindowRect(handle, out var rect) ||
-            cursor.X < rect.Left || cursor.X >= rect.Right || cursor.Y < rect.Top || cursor.Y >= rect.Bottom ||
-            NativeMethods.GetAncestor(NativeMethods.WindowFromPoint(cursor), 2) != NativeMethods.GetAncestor(handle, 2))
+            cursor.X < rect.Left || cursor.X >= rect.Right || cursor.Y < rect.Top || cursor.Y >= rect.Bottom)
+        {
+            HideQuotaToolTip();
+            return;
+        }
+
+        var wndUnderCursor = NativeMethods.WindowFromPoint(cursor);
+        var rootWnd = NativeMethods.GetAncestor(wndUnderCursor, 2);
+        if (wndUnderCursor != handle && rootWnd != handle)
         {
             HideQuotaToolTip();
             return;
@@ -258,6 +265,7 @@ public partial class CapsuleWindow : Window
         if (e.ChangedButton == MouseButton.Left)
         {
             ToggleFlyout();
+            e.Handled = true;
         }
     }
 

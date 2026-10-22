@@ -6,6 +6,7 @@ internal static class NativeMethods
 {
     public const int GWL_STYLE = -16;
     public const int GWL_EXSTYLE = -20;
+    public const int GWLP_HWNDPARENT = -8;
 
     public const int WS_POPUP = unchecked((int)0x80000000);
     public const int WS_CHILD = 0x40000000;
@@ -33,6 +34,12 @@ internal static class NativeMethods
     public static extern IntPtr WindowFromPoint(POINT point);
     [DllImport("user32.dll")]
     public static extern IntPtr GetAncestor(IntPtr window, uint flags);
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetShellWindow();
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
 
     [StructLayout(LayoutKind.Sequential)]
     public struct MONITORINFO

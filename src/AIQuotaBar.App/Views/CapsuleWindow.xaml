@@ -7,15 +7,15 @@
         WindowStyle="None"
         AllowsTransparency="False"
         Background="#121724"
-        Topmost="False"
+        Topmost="True"
         ShowActivated="False"
         ShowInTaskbar="False"
         ResizeMode="NoResize"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
-        MouseLeftButtonUp="OnCapsuleClicked"
-        MouseRightButtonUp="OnCapsuleRightClicked"
-        MouseWheel="OnMouseWheelSwitched">
+        PreviewMouseLeftButtonUp="OnCapsuleClicked"
+        PreviewMouseRightButtonUp="OnCapsuleRightClicked"
+        PreviewMouseWheel="OnMouseWheelSwitched">
 
     <Window.Resources>
         <conv:PercentToColorConverter x:Key="PercentToColorConv" />

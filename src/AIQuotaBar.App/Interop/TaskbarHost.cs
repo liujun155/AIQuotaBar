@@ -11,7 +11,6 @@ public sealed class TaskbarHost
     private readonly DispatcherTimer _alignTimer;
     private IntPtr _windowHandle;
     private IntPtr _taskbarHandle;
-    private bool _embedded;
     private (int Width, int Height, int Radius) _regionSize;
 
     public TaskbarHost(Window window)
@@ -21,19 +20,36 @@ public sealed class TaskbarHost
         _alignTimer.Tick += (_, _) => Reposition();
     }
 
-    public bool IsEmbedded => _embedded;
-
     public void Attach()
     {
         _windowHandle = new WindowInteropHelper(_window).EnsureHandle();
         var style = NativeMethods.GetWindowLongPtr(_windowHandle, NativeMethods.GWL_EXSTYLE).ToInt64();
         NativeMethods.SetWindowLongPtr(_windowHandle, NativeMethods.GWL_EXSTYLE,
             new IntPtr(style | NativeMethods.WS_EX_TOOLWINDOW | NativeMethods.WS_EX_NOACTIVATE));
+
+        // 挂钩 Win32 消息，针对非激活悬浮窗确保鼠标点击正常分发（返回 MA_NOACTIVATE）
+        var source = HwndSource.FromHwnd(_windowHandle);
+        source?.AddHook(WndProc);
+
         Reposition();
         _alignTimer.Start();
     }
 
     public void Detach() => _alignTimer.Stop();
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_MOUSEACTIVATE = 0x0021;
+        const int MA_NOACTIVATE = 3;
+
+        if (msg == WM_MOUSEACTIVATE)
+        {
+            handled = true;
+            return (IntPtr)MA_NOACTIVATE;
+        }
+
+        return IntPtr.Zero;
+    }
 
     public void Reposition()
     {
@@ -46,22 +62,14 @@ public sealed class TaskbarHost
             return;
         }
 
-        var styleChanged = false;
-        if (_taskbarHandle != taskbar || NativeMethods.GetParent(_windowHandle) != taskbar)
+        if (_taskbarHandle != taskbar)
         {
-            styleChanged = true;
-            var style = NativeMethods.GetWindowLongPtr(_windowHandle, NativeMethods.GWL_STYLE).ToInt64();
-            NativeMethods.SetWindowLongPtr(_windowHandle, NativeMethods.GWL_STYLE,
-                new IntPtr((style & ~NativeMethods.WS_POPUP) | NativeMethods.WS_CHILD | NativeMethods.WS_CLIPSIBLINGS));
-            NativeMethods.SetParent(_windowHandle, taskbar);
-            // Null is also success when the previous parent was the desktop.
-            _embedded = NativeMethods.GetParent(_windowHandle) == taskbar;
-            if (!_embedded)
-            {
-                NativeMethods.SetWindowLongPtr(_windowHandle, NativeMethods.GWL_STYLE,
-                    new IntPtr((style & ~NativeMethods.WS_CHILD) | NativeMethods.WS_POPUP));
-            }
             _taskbarHandle = taskbar;
+            // 将 taskbar 设为 _windowHandle 的 Owner（GWLP_HWNDPARENT），而非 Child（WS_CHILD）
+            // 优势：
+            // 1. 窗口仍为顶级 WS_POPUP，不进入 Win11 XAML 隔离层，鼠标点击、悬浮、滚轮 100% 原生响应！
+            // 2. Win+D 显示桌面时，属于 Taskbar 的 Owned 窗口绝不会被误最小化！
+            NativeMethods.SetWindowLongPtr(_windowHandle, NativeMethods.GWLP_HWNDPARENT, taskbar);
         }
 
         var dpi = NativeMethods.GetDpiForWindow(taskbar);
@@ -74,6 +82,8 @@ public sealed class TaskbarHost
         var target = TaskbarLayout.Place(ToPixels(bar), tray, _window.Width, _window.Height, scale);
         var monitor = ReadMonitor(taskbar);
         if (monitor.rcMonitor.Width <= 0 || monitor.rcMonitor.Height <= 0) return;
+
+        // 如果任务栏隐藏、自动收起或不可见，同步隐藏胶囊
         if (!NativeMethods.IsWindowVisible(taskbar) ||
             Math.Min(bar.Bottom, monitor.rcMonitor.Bottom) - Math.Max(bar.Top, monitor.rcMonitor.Top) <= 2 ||
             Math.Min(bar.Right, monitor.rcMonitor.Right) - Math.Max(bar.Left, monitor.rcMonitor.Left) <= 2)
@@ -81,16 +91,45 @@ public sealed class TaskbarHost
             NativeMethods.ShowWindow(_windowHandle, 0);
             return;
         }
-        if (!_embedded)
-            target = TaskbarLayout.PlacePopup(ToPixels(bar), ToPixels(monitor.rcWork), target.Width, target.Height, (int)(6 * scale));
 
-        var origin = new NativeMethods.POINT { X = target.Left, Y = target.Top };
-        if (_embedded && !NativeMethods.ScreenToClient(taskbar, ref origin)) return;
-        NativeMethods.SetWindowPos(_windowHandle, _embedded ? IntPtr.Zero : NativeMethods.HWND_TOPMOST,
-            origin.X, origin.Y, target.Width, target.Height,
-            NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_SHOWWINDOW |
-            (styleChanged ? NativeMethods.SWP_FRAMECHANGED : 0));
+        // 检查前台窗口是否处于全屏状态（例如全屏观看视频、全屏游戏），若是则自动避让隐藏
+        if (IsForegroundFullScreen(monitor.rcMonitor, taskbar))
+        {
+            NativeMethods.ShowWindow(_windowHandle, 0);
+            return;
+        }
+
+        // 胶囊作为任务栏上方的顶级置顶悬浮窗（Topmost WS_POPUP），绝对物理坐标对齐任务栏托盘左侧
+        NativeMethods.SetWindowPos(_windowHandle, NativeMethods.HWND_TOPMOST,
+            target.Left, target.Top, target.Width, target.Height,
+            NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_SHOWWINDOW);
+
         ApplyRegion(target.Width, target.Height, (int)Math.Round(7 * scale));
+    }
+
+    private bool IsForegroundFullScreen(NativeMethods.RECT monitorRect, IntPtr taskbar)
+    {
+        var fg = NativeMethods.GetForegroundWindow();
+        if (fg == IntPtr.Zero || fg == _windowHandle || fg == taskbar) return false;
+
+        var shellWindow = NativeMethods.GetShellWindow();
+        if (fg == shellWindow) return false;
+
+        var className = new System.Text.StringBuilder(256);
+        NativeMethods.GetClassName(fg, className, 256);
+        var cls = className.ToString();
+        if (cls == "Progman" || cls == "WorkerW" || cls == "Shell_TrayWnd") return false;
+
+        if (NativeMethods.GetWindowRect(fg, out var fgRect))
+        {
+            if (fgRect.Left <= monitorRect.Left && fgRect.Top <= monitorRect.Top &&
+                fgRect.Right >= monitorRect.Right && fgRect.Bottom >= monitorRect.Bottom)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void PositionFlyout(Window flyout)
